@@ -2,14 +2,15 @@
   "name": "blogpost",
   "version": "1.0.0",
   "description": "blogpost drill",
-  "main": "model.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
   "author": "Courtney B.",
   "license": "ISC",
   "dependencies": {
     "express": "^4.16.4",
+    "morgan": "^1.9.1",
     "uuid": "^3.3.2"
   }
 }

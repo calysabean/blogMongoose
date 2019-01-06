@@ -3,7 +3,8 @@ const router = express.Router();
 
 
 
-const { BlogPosts } = require("./models");
+
+const { BlogPosts } = require("./model");
 
 function blogText() {
   return (
