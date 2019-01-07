@@ -57,8 +57,6 @@ describe('BlogPosts', function() {
   it('should update Blog on PUT', function() {
 
     const updateData = {
-      name: 'foo',
-      ingredients: ['bizz', 'bang'],
       title: 'random title',
       content: ['fake text'],
       author: 'random author',
