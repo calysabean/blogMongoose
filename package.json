@@ -4,13 +4,20 @@
   "description": "blogpost drill",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "mocha --exit ./test"
   },
   "author": "Courtney B.",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.18.3",
+    "chai-http": "^4.2.1",
     "express": "^4.16.4",
     "morgan": "^1.9.1",
     "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0"
   }
 }
