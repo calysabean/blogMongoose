@@ -1,15 +1,5 @@
 const uuid = require('uuid');
 
-// This module provides volatile storage, using a `BlogPost`
-// model. We haven't learned about databases yet, so for now
-// we're using in-memory storage. This means each time the app stops, our storage
-// gets erased.
-
-// Don't worry too much about how BlogPost is implemented.
-// Our concern in this example is with how the API layer
-// is implemented, and getting it to use an existing model.
-
-
 function StorageException(message) {
    this.message = message;
    this.name = "StorageException";
@@ -29,13 +19,11 @@ const BlogPosts = {
     return post;
   },
   get: function(id=null) {
-    // if id passed in, retrieve single post,
-    // otherwise send all posts.
+ 
     if (id !== null) {
       return this.posts.find(post => post.id === id);
     }
-    // return posts sorted (descending) by
-    // publish date
+    
     return this.posts.sort(function(a, b) {
       return b.publishDate - a.publishDate
     });
@@ -72,7 +60,7 @@ function createBlogPostsModel() {
 const mongoose = require("mongoose");
 
 // this is our schema to represent a blog
-const blogSchema = mongoose.Schema({
+const blogPostSchema = mongoose.Schema({
   title: { type: String, required: true },
   content: { type: String, required: true },
   author: {
@@ -81,19 +69,11 @@ const blogSchema = mongoose.Schema({
   },
 });
 
-// *virtuals* (http://mongoosejs.com/docs/guide.html#virtuals)
-// allow us to define properties on our object that manipulate
-// properties that are stored in the database. Here we use it
-// to generate a human readable string based on the author object
-// we're storing in Mongo.
-blogSchema.virtual("authorString").get(function() {
+blogPostSchema.virtual("authorString").get(function() {
   return `${this.author}`.trim();
 });
 
-// this is an *instance method* which will be available on all instances
-// of the model. This method will be used to return an object that only
-// exposes *some* of the fields we want from the underlying data
-restaurantSchema.methods.serialize = function() {
+blogPostSchema.methods.serialize = function() {
   return {
 
     id: this._id.uuid.v4(),
@@ -105,10 +85,8 @@ restaurantSchema.methods.serialize = function() {
   };
 };
 
-// note that all instance methods and virtual properties on our
-// schema must be defined *before* we make the call to `.model`.
-const BlogPost = mongoose.model("BlogPost", blogSchema);
+const BlogPost = mongoose.model("BlogPost", blogPostSchema);
 
-module.exports = {BlogPosts: createBlogPostsModel()};
+//module.exports = {BlogPosts: createBlogPostsModel()};
 
 module.exports = { BlogPost };

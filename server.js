@@ -7,8 +7,12 @@ const app = express();
 app.use(morgan("common"));
 app.use(express.json());
 
-// you need to import `blogPostsRouter` router and route
-// requests to HTTP requests to `/blog-posts` to `blogPostsRouter`
+const { PORT, DATABASE_URL } = require("./config");
+
+const mongoose = require("mongoose");
+
+mongoose.Promise = global.Promise;
+
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
@@ -16,37 +20,35 @@ app.get('/', (req, res) => {
 
 app.use("/blog-posts", blogPostsRouter);
 
-function runServer(databaseUrl, port = PORT) {
-  return new Promise((resolve, reject) => {
-    mongoose.connect(
-      databaseUrl,
-      err => {
-        if (err) {
-          return reject(err);
-        }
-        server = app
-          .listen(port, () => {
-            console.log(`Your app is listening on port ${port}`);
-            resolve();
-          })
-          .on("error", err => {
-            mongoose.disconnect();
-            reject(err);
-          });
-      }
-    );
-  });
-}
+// function runServer(databaseUrl, port = PORT) {
+//   return new Promise((resolve, reject) => {
+//     mongoose.connect(
+//       databaseUrl,
+//       err => {
+//         if (err) {
+//           return reject(err);
+//         }
+//         server = app
+//           .listen(port, () => {
+//             console.log(`Your app is listening on port ${port}`);
+//             resolve();
+//           })
+//           .on("error", err => {
+//             mongoose.disconnect();
+//             reject(err);
+//           });
+//       }
+//     );
+//   });
+// }
 
 
 
 let server;
 
-function runServer(databaseUrl, port = PORT) {
+function runServer(databaseUrl = DATABASE_URL, port = PORT) {
   return new Promise((resolve, reject) => {
-    mongoose.connect(
-      databaseUrl,
-      err => {
+    mongoose.connect(databaseUrl, err => {
         if (err) {
           return reject(err);
         }

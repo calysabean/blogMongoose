@@ -8,9 +8,9 @@ const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
 
 const { PORT, DATABASE_URL } = require("./config");
-const { BlogPosts } = require("./model");
+const { BlogPosts } = require("./model"); 
 
-function blogText() {
+/*function blogText() {
   return (
     "Fake text. Fake text. Fake text. Fake text. Fake text. Fake text. Fake text. Fake text." +
     "Fake text. Fake text. Fake text. Fake text. Fake text." +
@@ -22,7 +22,7 @@ function blogText() {
 }
 
 BlogPosts.create("title1", blogText(), "Author1");
-BlogPosts.create("title2", blogText(), "Author2");
+BlogPosts.create("title2", blogText(), "Author2");*/
 
 
 //router.get("/", (req, res) => {
@@ -144,9 +144,7 @@ router.delete("/:id", (req, res) => {
     .catch(err => res.status(500).json({ message: "Internal server error" }));
 });
 
-app.use("*", function(req, res) {
-  res.status(404).json({ message: "Not Found" });
-});
+
 
 
 module.exports = router;
