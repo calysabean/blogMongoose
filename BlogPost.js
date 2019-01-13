@@ -1,26 +1,26 @@
-const express = require("express");
-const router = express.Router();
-const mongoose = require("mongoose");
-mongoose.Promise = global.Promise;
+  
+  
+  const express = require("express");
+  const router = express.Router();
+  const mongoose = require("mongoose");
+  mongoose.Promise = global.Promise;
 
-const bodyParser = require('body-parser');
-const jsonParser = bodyParser.json();
+  const bodyParser = require('body-parser');
+  const jsonParser = bodyParser.json();
 
-const { PORT, DATABASE_URL } = require("./config");
-const { BlogPost } = require("./model"); 
+  const { PORT, DATABASE_URL } = require("./config");
+  const { BlogPost } = require("./model"); 
 
 /*router.get("/", (req, res) => {
   res.json(BlogPost.get());
 });*/
 
-
 router.get("/", (req, res) => {
-  console.log(res);
-  BlogPost.find()  
+  BlogPost
+  .find()  
   .then(posts => {
-    res.json({
-      blogs: posts.map(post => post.serialize())
-    });
+    console.log(posts);
+   res.json(posts.map(post => post.serialize()));
   })
   .catch(err => {
     console.error(err);
@@ -28,9 +28,8 @@ router.get("/", (req, res) => {
   });
 });
 
-router.get("/", (req, res) => { 
+router.get("/:id", (req, res) => { 
   BlogPost
-
   .findById(req.params.id)
     .then(blog => res.json(blog.serialize()))
     .catch(err => {
@@ -39,7 +38,7 @@ router.get("/", (req, res) => {
     });
 });
 
-router.post("/:id", jsonParser, (req, res) => {
+router.post("/", jsonParser, (req, res) => {
 
     const requiredFields = ["title", "content", "author"];
   for (let i = 0; i < requiredFields.length; i++) {
@@ -95,7 +94,7 @@ router.put("/:id", jsonParser, (req, res) => {
     }
   });
 
-  BlogPosts
+  BlogPost
     .findByIdAndUpdate(req.params.id, {$set: toUpdate})
     .then(blog => res.status(204).end())
     .catch(err => res.status(500).json({message: 'Internal server error'}));
@@ -111,3 +110,5 @@ router.delete('/:id', (req, res) => {
 });
 
 module.exports = router;
+
+

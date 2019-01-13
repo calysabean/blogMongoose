@@ -23,12 +23,10 @@ blogPostSchema.methods.serialize = function() {
     id: this._id,
     content: this.content,
     author: this.authorString,
-    created: this.created,
+    created: this.created
   };
 };
 
 const BlogPost = mongoose.model("BlogPost", blogPostSchema);
-
-//module.exports = {BlogPosts: createBlogPostsModel()};
 
 module.exports = { BlogPost };

@@ -1,13 +1,14 @@
+
+
 const express = require("express");
+const app = express();
 const morgan = require("morgan");
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
 const { DATABASE_URL, PORT } = require('./config');
 const { BlogPost } = require('./model');
 const blogPostsRouter = require("./BlogPost");
-
-const app = express();
 
 app.use(morgan("common"));
 app.use(express.json());
@@ -21,7 +22,9 @@ app.use("/blog-posts/posts", blogPostsRouter);
 let server;
 
 function runServer(databaseUrl = DATABASE_URL, port = PORT) {
+  console.log(databaseUrl);
   return new Promise((resolve, reject) => {
+    mongoose.set('debug', true);
     mongoose.connect(databaseUrl, err => {
         if (err) {
           return reject(err);
