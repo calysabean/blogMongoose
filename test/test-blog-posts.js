@@ -64,7 +64,7 @@ describe('blog posts API resource', function () {
 
       let res;
       return chai.request(app)
-        .get('/posts')
+        .get('/')
         .then(_res => {
           res = _res;
           res.should.have.status(200);
@@ -84,7 +84,7 @@ describe('blog posts API resource', function () {
 
       let resPost;
       return chai.request(app)
-        .get('/posts')
+        .get('/')
         .then(function (res) {
 
           res.should.have.status(200);
@@ -122,7 +122,7 @@ describe('blog posts API resource', function () {
       };
 
       return chai.request(app)
-        .post('/posts')
+        .post('/')
         .send(newPost)
         .then(function (res) {
           res.should.have.status(201);
@@ -169,7 +169,7 @@ describe('blog posts API resource', function () {
           updateData.id = post.id;
 
           return chai.request(app)
-            .put(`/posts/${post.id}`)
+            .put(`/${post.id}`)
             .send(updateData);
         })
         .then(res => {
@@ -195,7 +195,7 @@ describe('blog posts API resource', function () {
         .findOne()
         .then(_post => {
           post = _post;
-          return chai.request(app).delete(`/posts/${post.id}`);
+          return chai.request(app).delete(`/${post.id}`);
         })
         .then(res => {
           res.should.have.status(204);
