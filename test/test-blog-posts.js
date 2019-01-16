@@ -5,9 +5,11 @@ const mongoose = require('mongoose');
 
 const should = chai.should();
 
-const { BlogPost } = require('../model');
+const { BlogPost, Author  } = require('../model');
 const { closeServer, runServer, app } = require('../server');
 const { TEST_DATABASE_URL } = require('../config');
+
+const { blogPostsRouter } = require("../BlogPost");
 
 chai.use(chaiHttp);
 
@@ -64,7 +66,7 @@ describe('blog posts API resource', function () {
 
       let res;
       return chai.request(app)
-        .get('/')
+        .get('/blog-posts/posts')
         .then(_res => {
           res = _res;
           res.should.have.status(200);
@@ -84,7 +86,7 @@ describe('blog posts API resource', function () {
 
       let resPost;
       return chai.request(app)
-        .get('/')
+        .get('/blog-posts/posts')
         .then(function (res) {
 
           res.should.have.status(200);
@@ -122,7 +124,7 @@ describe('blog posts API resource', function () {
       };
 
       return chai.request(app)
-        .post('/')
+        .post('/blog-posts/posts')
         .send(newPost)
         .then(function (res) {
           res.should.have.status(201);
@@ -149,10 +151,6 @@ describe('blog posts API resource', function () {
 
   describe('PUT endpoint', function () {
 
-    // strategy:
-    //  1. Get an existing post from db
-    //  2. Make a PUT request to update that post
-    //  4. Prove post in db is correctly updated
     it('should update fields you send over', function () {
       const updateData = {
         title: 'title title',
@@ -169,7 +167,7 @@ describe('blog posts API resource', function () {
           updateData.id = post.id;
 
           return chai.request(app)
-            .put(`/${post.id}`)
+            .put(`/blog-posts/posts/${post.id}`)
             .send(updateData);
         })
         .then(res => {
@@ -195,7 +193,7 @@ describe('blog posts API resource', function () {
         .findOne()
         .then(_post => {
           post = _post;
-          return chai.request(app).delete(`/${post.id}`);
+          return chai.request(app).delete(`/blog-posts/posts/${post.id}`);
         })
         .then(res => {
           res.should.have.status(204);
