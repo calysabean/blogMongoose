@@ -1,94 +1,210 @@
-
 const chai = require('chai');
 const chaiHttp = require('chai-http');
-
-const {app, runServer, closeServer} = require('../server');
+const faker = require('faker');
+const mongoose = require('mongoose');
 
 const should = chai.should();
+
+const { BlogPost } = require('../model');
+const { closeServer, runServer, app } = require('../server');
+const { TEST_DATABASE_URL } = require('../config');
 
 chai.use(chaiHttp);
 
 
-describe('BlogPosts', function() {
+function tearDownDb() {
+  return new Promise((resolve, reject) => {
+    console.warn('Deleting database');
+    mongoose.connection.dropDatabase()
+      .then(result => resolve(result))
+      .catch(err => reject(err));
+  });
+}
 
-  before(function() {
-    return runServer();
+function seedBlogPostData() {
+  console.info('seeding blog post data');
+  const seedData = [];
+  for (let i = 1; i <= 10; i++) {
+    seedData.push({
+      author: {
+        firstName: faker.name.firstName(),
+        lastName: faker.name.lastName()
+      },
+      title: faker.lorem.sentence(),
+      content: faker.lorem.text()
+    });
+  }
+
+  return BlogPost.insertMany(seedData);
+}
+
+
+describe('blog posts API resource', function () {
+
+  before(function () {
+    return runServer(TEST_DATABASE_URL);
   });
 
-  after(function() {
+  beforeEach(function () {
+    return seedBlogPostData();
+  });
+
+  afterEach(function () {
+
+    return tearDownDb();
+  });
+
+  after(function () {
     return closeServer();
   });
 
-  it('should show current blog-Posts on GET', function() {
-   
-    return chai.request(app)
-      .get('/blog-posts')
-      .then(function(res) {
+  describe('GET endpoint', function () {
 
-        res.should.have.status(200);
-        res.should.be.json;
-        res.body.should.be.a('array');
+    it('should return all existing posts', function () {
 
-        res.body.should.have.length.of.at.least(1);
+      let res;
+      return chai.request(app)
+        .get('/posts')
+        .then(_res => {
+          res = _res;
+          res.should.have.status(200);
 
-        res.body.forEach(function(item) {
-          item.should.be.a('object');
-          item.should.include.keys('id', 'title', 'content', 'author', 'publishDate');
+          res.body.should.have.lengthOf.at.least(1);
+
+          return BlogPost.count();
+        })
+        .then(count => {
+
+          
+          res.body.should.have.lengthOf(count);
         });
-      });
+    });
+
+    it('should return posts with right fields', function () {
+
+      let resPost;
+      return chai.request(app)
+        .get('/posts')
+        .then(function (res) {
+
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.lengthOf.at.least(1);
+
+          res.body.forEach(function (post) {
+            post.should.be.a('object');
+            post.should.include.keys('id', 'title', 'content', 'author');
+          });
+
+          resPost = res.body[0];
+          return BlogPost.findById(resPost.id);
+        })
+        .then(post => {
+          resPost.title.should.equal(post.title);
+          resPost.content.should.equal(post.content);
+          resPost.author.should.equal(post.authorName);
+        });
+    });
   });
 
-  it('should add a new Blog on POST', function() {
-    const newBloPost = {
-        title: 'New Post2', content: ['fake text'], author: 'some-name', publishDate: 'today'};
-    return chai.request(app)
-      .post('/blog-posts')
-      .send(newBloPost)
-      .then(function(res) {
-        res.should.have.status(201);
-        res.should.be.json;
-        res.body.should.be.a('object');
-        res.body.should.include.keys('id', 'title', 'content', 'author', 'publishDate');
-        res.body.title.should.equal(newBloPost.title);
-        res.body.content.should.be.a('array');
-        res.body.content.should.include.members(newBloPost.content);
-      });
+  describe('POST endpoint', function () {
+
+    it('should add a new blog post', function () {
+
+      const newPost = {
+        title: faker.lorem.sentence(),
+        author: {
+          firstName: faker.name.firstName(),
+          lastName: faker.name.lastName(),
+        },
+        content: faker.lorem.text()
+      };
+
+      return chai.request(app)
+        .post('/posts')
+        .send(newPost)
+        .then(function (res) {
+          res.should.have.status(201);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.include.keys(
+            'id', 'title', 'content', 'author');
+          res.body.title.should.equal(newPost.title);
+
+          res.body.id.should.not.be.null;
+          res.body.author.should.equal(
+            `${newPost.author.firstName} ${newPost.author.lastName}`);
+          res.body.content.should.equal(newPost.content);
+          return BlogPost.findById(res.body.id);
+        })
+        .then(function (post) {
+          post.title.should.equal(newPost.title);
+          post.content.should.equal(newPost.content);
+          post.author.firstName.should.equal(newPost.author.firstName);
+          post.author.lastName.should.equal(newPost.author.lastName);
+        });
+    });
   });
 
-  it('should update Blog on PUT', function() {
+  describe('PUT endpoint', function () {
 
-    const updateData = {
-      title: 'random title',
-      content: ['fake text'],
-      author: 'random author',
-      publishDate: 'random date'
-    };
+    // strategy:
+    //  1. Get an existing post from db
+    //  2. Make a PUT request to update that post
+    //  4. Prove post in db is correctly updated
+    it('should update fields you send over', function () {
+      const updateData = {
+        title: 'title title',
+        content: 'content content',
+        author: {
+          firstName: 'first-name',
+          lastName: 'last-name'
+        }
+      };
 
-    return chai.request(app)
+      return BlogPost
+        .findOne()
+        .then(post => {
+          updateData.id = post.id;
 
-      .get('/blog-posts')
-      .then(function(res) {
-        updateData.id = res.body[0].id;
-
-        return chai.request(app)
-          .put(`/blog-posts/${updateData.id}`)
-          .send(updateData)
-      })
-      .then(function(res) {
-        res.should.have.status(204);
-      });
+          return chai.request(app)
+            .put(`/posts/${post.id}`)
+            .send(updateData);
+        })
+        .then(res => {
+          res.should.have.status(204);
+          return BlogPost.findById(updateData.id);
+        })
+        .then(post => {
+          post.title.should.equal(updateData.title);
+          post.content.should.equal(updateData.content);
+          post.author.firstName.should.equal(updateData.author.firstName);
+          post.author.lastName.should.equal(updateData.author.lastName);
+        });
+    });
   });
 
-  it('should delete Blog-Post on DELETE', function() {
-    return chai.request(app)
-      
-      .get('/blog-posts')
-      .then(function(res) {
-        return chai.request(app)
-          .delete(`/blog-posts/${res.body[0].id}`)
-      })
-      .then(function(res) {
-        res.should.have.status(204);
-      });
+  describe('DELETE endpoint', function () {
+    
+    it('should delete a post by id', function () {
+
+      let post;
+
+      return BlogPost
+        .findOne()
+        .then(_post => {
+          post = _post;
+          return chai.request(app).delete(`/posts/${post.id}`);
+        })
+        .then(res => {
+          res.should.have.status(204);
+          return BlogPost.findById(post.id);
+        })
+        .then(_post => {
+          
+          should.not.exist(_post);
+        });
+    });
   });
 });
